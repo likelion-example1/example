@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>update</title>
+  </head>
+  <body>
+    <h1>Updating Post</h1>
+
+    <form action="{% url 'SplitIt:update_post' update_SplitIt.id %}" method="post">
+      {% csrf_token %}
+      <p>제목: <input type="text" name="title" value="{{update_SplitIt.title}}" /></p>
+      본문 :
+      <textarea name="content" cols="30" rows="10">{{update_SplitIt.content}}</textarea>
+      <button type="submit">수정하기</button>
+    </form>
+  </body>
+</html>
