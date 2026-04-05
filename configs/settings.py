@@ -11,10 +11,28 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_URL = '/static/'
 
+
+STATICFILES_DIRS = [
+
+ BASE_DIR / 'static',
+ os.path.join(BASE_DIR, 'SplitIt', 'static'), 
+
+] 
+
+
+STATIC_ROOT = os.path.join('staticfiles')
+
+# media
+
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -29,6 +47,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+AUTH_USER_MODEL='accounts.CustomUser'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,6 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'SplitIt.apps.SplititConfig',
+    'accounts.apps.AccountsConfig',
 ]
 
 MIDDLEWARE = [
@@ -103,8 +123,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-#사용자 테이블 설정
-AUTH_USER_MODEL = 'auth.User'
+
 
 #언어 설정
 LANGUAGE_CODE = 'ko-kr'

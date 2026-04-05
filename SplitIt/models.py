@@ -30,7 +30,7 @@ class Post(models.Model):
  created_at = models.DateTimeField(auto_now_add=True)
 
  content = models.TextField(max_length=500)
-
+ photo = models.ImageField(blank=True, null=True, upload_to="post_photo")
  hashtag = models.ManyToManyField(Hashtag)
 
  writer = models.CharField(max_length=50, default="익명")        # 임시 작성자명

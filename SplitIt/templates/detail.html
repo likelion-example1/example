@@ -153,6 +153,11 @@
           {{ post.content }}
         </div>
 
+        {% if post.photo %}
+        <img src="{{ post.photo.url }}" alt="" height="400px;">
+        {% endif %}
+        <br>
+
         {% if post.hashtag.all %}
 
 
