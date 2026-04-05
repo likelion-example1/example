@@ -143,15 +143,54 @@
         <div class="delivery-info">
           <p><strong>상태:</strong>{{post.status}}</p>
           <p><strong>가게 이름:</strong>{{post.store_name}}</p>
-          <p><strong>수령 장소:</strong>{{post.pickup_location}}</p>
+          <p><strong>수령 장소:</strong>{{post.location.name}}</p>
           <p><strong>배달비:</strong>{{post.delivery_fee}}원</p>
-          <p><strong>모집 인원:</strong>{{post.headcount}}명</p>
+          <p><strong>모집 인원:</strong>{{post.target_headcount}}명</p>
           
         </div>
 
         <div class="post-content">
           {{ post.content }}
         </div>
+
+        {% if post.hashtag.all %}
+
+
+
+<div style="margin-top: 2rem; padding: 2rem; background-color: #f8fafc; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0;">
+            
+            <h3 style="font-size: 1.5rem; color: #1e293b; margin-bottom: 1.5rem;">
+                현재 인원 ( <span style="color: #3b82f6; font-weight: 800;">{{ post.participants.count }}</span> / {{ post.target_headcount }} )
+            </h3>
+
+            {% if post.participants.count < post.target_headcount %}>
+                <form action="{% url 'SplitIt:join_post' post.id %}" method="POST" style="display: inline-flex; gap: 0.5rem; justify-content: center;">
+                    {% csrf_token %}
+                    <input type="text" name="nickname" placeholder="사용할 닉네임" required style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; width: 150px; font-size: 1rem;">
+                    
+                    <button type="submit" style="background-color: #3b82f6; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s;">
+                        🙋‍♂️ 참여하기
+                    </button>
+                </form>
+            {% else %}
+                <div style="padding: 1rem; background-color: #fee2e2; color: #dc2626; border-radius: 8px; font-weight: bold; font-size: 1.1rem;">
+                    모집완료! 
+                </div>
+            {% endif %}
+            
+        </div>
+
+<div class="hashtag-list">
+
+ {% for hashtag in post.hashtag.all %}
+
+ <span class="hashtag-item">#{{ hashtag.hashtag }}</span>
+
+ {% endfor %}
+
+</div>
+
+{% endif %}
 
         <footer class="post-footer">
           {% if post.status == '모집중' %}
@@ -165,6 +204,46 @@
           <a href="{% url 'SplitIt:update_page' post.id %}" class="btn btn-edit">수정</a>
           <a href="{% url 'SplitIt:delete' post.id %}" class="btn btn-delete" onclick="return confirm('진짜 삭제하실 건가요?')">삭제</a>
         </footer>
+
+        <ul class="comment-list">
+
+            {% for comment in post.comments.all %}
+
+            <li class="comment-item">
+
+              <div class="comment-avatar">{{ comment.username|slice:":1"|upper }}</div>
+
+              <div class="comment-body">
+
+                <div class="comment-meta">
+
+                  <span class="comment-username">{{ comment.username }}</span>
+
+                  <span class="comment-date">{{ comment.created_at|date:"Y.m.d H:i" }}</span>
+
+                </div>
+
+              <p class="comment-text">{{ comment.comment_text }}</p>
+
+            </div>
+
+          </li>
+
+              {% empty %}
+
+               <li class="no-comments">아직 댓글이 없어요. 첫 번째 댓글을 남겨보세요! 💬</li>
+
+              {% endfor %}
+
+             </ul>
+<div class="comment-form-wrapper">
+
+  <a href="{% url 'SplitIt:add_comment' post.id %}" class="btn-add-comment">댓글 달기</a>
+
+</div>
+
+
+
       </article>
     </main>
   </body>
