@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 
 from django.contrib.auth import authenticate, login, logout
-from accounts.forms import RegisterForm
+from MTV.accounts.forms import RegisterForm
 
 def login_view(request):
 
