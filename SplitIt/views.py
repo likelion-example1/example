@@ -76,6 +76,7 @@ class PostDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
     
+    
 class CommentView(APIView):
 
     def post(self, request:HttpRequest, format=None):
