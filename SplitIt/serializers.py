@@ -21,6 +21,7 @@ class PostSerializer(serializers.ModelSerializer):
 
         fields = (
 
-            'id', 'title', 'date', 'body', 'language', 'comments', 'host', 'participants'
+            'id', 'title', 'date', 'body', 'language', 'comments', 'host', 'participants', 'photo'
 
- )
+        )
+        read_only_fields = ['host']
