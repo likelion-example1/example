@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User #장고 기본모델 가져오는 코드
+from django.conf import settings
 
 # Create your models here.
 LANGUAGE_CHOICES = (
@@ -16,6 +16,20 @@ LANGUAGE_CHOICES = (
 
 
 class Post(models.Model):
+    
+    LOCATION_CHOICES = (
+        ('ECC', 'ECC'), ('조형대', '조형대'), ('공대', '공대'), 
+        ('연협', '연협'), ('학관', '학관'), ('학문관', '학문관'), ('중앙도서관', '중앙도서관')
+    )
+    
+    CATEGORY_CHOICES = (
+        ('한식', '한식'), ('분식', '분식'), ('양식', '양식'), 
+        ('중식', '중식'), ('일식', '일식'), ('샐러드', '샐러드'), ('디저트_음료', '디저트 및 음료')
+    )
+    
+    STATUS_CHOICES = (
+        ('모집중', '모집중'), ('모집완료', '모집완료'),
+    )
 
     title = models.CharField(max_length=200)
 
@@ -25,13 +39,19 @@ class Post(models.Model):
 
     language = models.IntegerField(choices=LANGUAGE_CHOICES)
     
-    
-    host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hosted_posts')
+    pickup_time = models.DateTimeField(null=True, blank=True) # 수령 시간
+    location = models.CharField(max_length=20, choices=LOCATION_CHOICES, default='ECC') # 수령 장소
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='한식') # 카테고리
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='모집중') # 상태
+   
+    host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='hosted_posts')
 
     
-    participants = models.ManyToManyField(User, related_name='participated_posts', blank=True)
+    participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='participated_posts', blank=True)
 
-
+    photo = models.ImageField(blank=True, null=True, upload_to="post_photo")
+ 
+ 
     def __str__(self):
 
         return self.title
@@ -40,7 +60,7 @@ class Comment(models.Model):
 
     post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
 
-    username = models.CharField(max_length=20)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
 
     comment_text = models.TextField()
 
@@ -49,4 +69,4 @@ class Comment(models.Model):
 
     def __str__(self):
 
-        return self.comment_text[:20]
+        return f"{self.author.username}: {self.comment_text[:20]}"
