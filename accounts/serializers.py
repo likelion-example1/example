@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     fields = (
 
-            'id', 'username', 'email', 'password'
+            'id', 'username', 'password'
 
         )
     
@@ -28,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         username=validated_data['username'],
 
-        email=validated_data['email']
+        
 
     )
 
@@ -42,27 +42,27 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.Serializer):
 
- email = serializers.CharField(max_length=100)
+ username = serializers.CharField(max_length=150)
 
  password = serializers.CharField(max_length=128, write_only=True)
  
  
  def validate(self, data):
 
-    email = data.get('email')
+    username = data.get('username')
 
     password = data.get('password')
 
 
-    if User.objects.filter(email=email).exists():
+    if User.objects.filter(username=username).exists():
 
-        user = User.objects.get(email=email)
+        user = User.objects.get(username=username)
 
  
 
         if not user.check_password(password):
 
-            raise serializers.ValidationError()
+            raise serializers.ValidationError("비밀번호가 틀렸습니다.")
 
         else:
 
@@ -77,7 +77,7 @@ class UserLoginSerializer(serializers.Serializer):
 
                  'id': user.id,
 
-                'email': user.email,
+                'username': user.username,
 
                 'access': access,
 
@@ -85,7 +85,7 @@ class UserLoginSerializer(serializers.Serializer):
 
                 }
     else:
-            raise serializers.ValidationError("가입되지 않은 이메일입니다.")
+            raise serializers.ValidationError("가입되지 않은 아이디입니다.")
             
             
             

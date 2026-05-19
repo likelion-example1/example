@@ -5,7 +5,7 @@ from django.conf import settings
 
 class User(AbstractUser):
 
- email = models.EmailField(max_length=100, unique=True)
+ pass
  
  
 class Profile(models.Model):
