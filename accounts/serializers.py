@@ -6,6 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.contrib.auth.password_validation import validate_password
 
+from .models import Profile
+
 class UserSerializer(serializers.ModelSerializer):
 
  class Meta:
@@ -101,3 +103,9 @@ class ChangePasswordSerializer(serializers.Serializer):
         if not user.check_password(value):
             raise serializers.ValidationError("기존 비밀번호가 틀렸습니다.")
         return value
+    
+    
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('nickname',) # 프론트엔드한테 닉네임만 딱 받아서 수정하겠다는 뜻

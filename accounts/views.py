@@ -14,7 +14,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import UserSerializer, UserLoginSerializer, ChangePasswordSerializer
+from .serializers import UserSerializer, UserLoginSerializer, ChangePasswordSerializer, ProfileUpdateSerializer
+
+from .models import Profile
 
 
 class SignUpView(APIView):
@@ -71,16 +73,31 @@ class ProfileView(APIView):
     def get(self, request):
        
         user = request.user
+        nickname = user.profile.nickname if hasattr(user, 'profile') else ""
         return Response({
             
             "username": user.username,
-            "id": user.id,
+            "nickname": nickname,
            
         }, status=status.HTTP_200_OK)
         
     def patch(self, request):
         user = request.user
-        return Response({"message": "프로필 수정 API 준비 완료!"}, status=status.HTTP_200_OK)
+        
+        # 1. 내 프로필을 가져오거나, 없으면 새로 만듭니다 (안전 장치)
+        profile, created = Profile.objects.get_or_create(user=user)
+        
+        serializer = ProfileUpdateSerializer(profile, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "message": "닉네임이 성공적으로 변경되었습니다.",
+                "nickname": serializer.data['nickname']
+            }, status=status.HTTP_200_OK)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+       
         
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
