@@ -73,27 +73,37 @@ class ProfileView(APIView):
     def get(self, request):
        
         user = request.user
-        nickname = user.profile.nickname if hasattr(user, 'profile') else ""
+        # 프로필이 없으면 닉네임과 사진을 못 가져오니, 안전하게 get_or_create 사용
+        profile, created = Profile.objects.get_or_create(user=user)
+        
+        # 사진이 있으면 전체 URL(http://...)로 만들고, 없으면 빈 문자열 반환
+        image_url = ""
+        if profile.profile_image:
+            image_url = request.build_absolute_uri(profile.profile_image.url) 
+        
         return Response({
             
             "username": user.username,
-            "nickname": nickname,
+            "nickname": profile.nickname,
+            "profile_image": image_url,
            
         }, status=status.HTTP_200_OK)
         
     def patch(self, request):
         user = request.user
+        profile, created = Profile.objects.get_or_create(user=user)
         
         # 1. 내 프로필을 가져오거나, 없으면 새로 만듭니다 (안전 장치)
         profile, created = Profile.objects.get_or_create(user=user)
         
-        serializer = ProfileUpdateSerializer(profile, data=request.data, partial=True)
+        serializer = ProfileUpdateSerializer(profile, data=request.data, partial=True, context={'request': request})
         
         if serializer.is_valid():
             serializer.save()
             return Response({
                 "message": "닉네임이 성공적으로 변경되었습니다.",
-                "nickname": serializer.data['nickname']
+                "nickname": serializer.data.get('nickname', ''),
+                "profile_image": serializer.data.get('profile_image', '')
             }, status=status.HTTP_200_OK)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

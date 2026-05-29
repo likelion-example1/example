@@ -78,9 +78,11 @@ class UserLoginSerializer(serializers.Serializer):
 
             return {
 
-                 'id': user.id,
+                 
 
                 'username': user.username,
+                
+                'nickname': user.profile.nickname if hasattr(user, 'profile') else "",
 
                 'access': access,
 
@@ -108,4 +110,4 @@ class ChangePasswordSerializer(serializers.Serializer):
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ('nickname',) # 프론트엔드한테 닉네임만 딱 받아서 수정하겠다는 뜻
+        fields = ('nickname', 'profile_image') # 프론트엔드한테 닉네임만 딱 받아서 수정하겠다는 뜻

@@ -10,18 +10,22 @@ class CommentSerializer(serializers.ModelSerializer):
 
         fields = (
 
-            'id', 'post', 'username', 'comment_text', 'created_at'
+            'id', 'post', 'author', 'author_username', 'comment_text', 'created_at'
         )
         
 class PostSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
+    host_nickname = serializers.CharField(source='host.profile.nickname', read_only=True)
     class Meta:
 
         model = Post
 
         fields = (
 
-            'id', 'title', 'date', 'body', 'language', 'comments', 'host', 'participants', 'photo'
+            'id', 'title', 'date', 'body', 'language', 'comments', 
+            'host', 'participants', 'photo',
+            'location', 'category', 'status', 'pickup_time'
+            'delivery_fee', 'min_order_amount'
 
         )
         read_only_fields = ['host']

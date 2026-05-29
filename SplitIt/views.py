@@ -25,7 +25,7 @@ class PostListView(APIView):
             posts = posts.filter(category=search_category)
 
 
-        serializer = PostSerializer(posts, many=True)
+        serializer = PostSerializer(posts, many=True, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -97,7 +97,7 @@ class CommentView(APIView):
 
         if serializer.is_valid():
 
-            serializer.save()
+            serializer.save(author=request.user)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -111,7 +111,7 @@ class MyPostListView(APIView):
        
         user_posts = Post.objects.filter(host=request.user)
         
-        serializer = PostSerializer(user_posts, many=True)
+        serializer = PostSerializer(user_posts, many=True, context={'request': request})
         
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -155,8 +155,7 @@ class JoinPostView(APIView):
             return Response({"message": "이미 참여 중인 게시글입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         # 모집 인원 체크
-        if post.participants.count() >= post.target_headcount:
-             return Response({"message": "이미 모집 인원이 가득 찼습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
 
         # 참여자 명단에 본인 추가
         post.participants.add(user)

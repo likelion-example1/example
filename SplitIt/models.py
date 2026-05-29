@@ -44,6 +44,10 @@ class Post(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='한식') # 카테고리
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='모집중') # 상태
    
+   
+    delivery_fee = models.IntegerField(default=0)      # 배달비
+    min_order_amount = models.IntegerField(default=0)  # 최소주문 금액
+    
     host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='hosted_posts')
 
     

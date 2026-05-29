@@ -185,3 +185,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/media/' # 브라우저에서 접근할 주소
+MEDIA_ROOT = BASE_DIR / 'media' # 실제 컴퓨터에 저장되는 폴더 위치
