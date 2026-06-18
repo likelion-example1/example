@@ -1,46 +1,41 @@
 from rest_framework import serializers
 
-from .models import User
+from .models import User, Profile
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.contrib.auth.password_validation import validate_password
 
-from .models import Profile
 
-class UserSerializer(serializers.ModelSerializer):
-
- class Meta:
-
-    model = User
-
-    fields = (
-
-            'id', 'username', 'password'
-
+class UserSerializer(serializers.Serializer):
+    id = serializers.CharField(max_length=150)         # 프론트의 로그인 아이디
+    pw = serializers.CharField(write_only=True)        # 프론트의 비밀번호
+    username = serializers.CharField(max_length=50)    # 프론트의 닉네임 (User Name)
+    
+    def create(self, validated_data):
+        # 2. 프론트가 보낸 'id' 값을 장고의 로그인 아이디(username) 칸에 쏙 넣어서 유저를 만듭니다.
+        user = User.objects.create(
+            username=validated_data['id'] 
         )
+        
+        # 3. 프론트가 보낸 'pw' 값으로 비밀번호를 암호화해서 세팅합니다.
+        user.set_password(validated_data['pw'])
+        user.save()
+
+        # 4. 프론트가 보낸 'username' 값은 Profile의 'nickname' 칸에 예쁘게 저장합니다!
+        Profile.objects.create(user=user, nickname=validated_data['username'])
+
+        return user
     
-    extra_kwargs = {
-            'password': {'write_only': True} 
+    # (선택) 회원가입 성공 후 프론트엔드에게 응답(Response)으로 보여줄 데이터 모양
+    def to_representation(self, instance):
+        return {
+            "id": instance.username,                # 가입된 로그인 아이디 반환
+            "username": instance.profile.nickname,  # 가입된 닉네임 반환
+            "message": "회원가입이 성공적으로 완료되었습니다!"
         }
-    
- def create(self, validated_data):
 
-    user = User.objects.create(
-
-        username=validated_data['username'],
-        
-
-        
-
-    )
-
-    user.set_password(validated_data['password'])
-
-    user.save()
-
-
-    return user
+ 
 
 
 class UserLoginSerializer(serializers.Serializer):

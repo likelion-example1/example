@@ -24,8 +24,9 @@ class PostSerializer(serializers.ModelSerializer):
 
             'id', 'title', 'date', 'body', 'language', 'comments', 
             'host', 'participants', 'photo',
-            'location', 'category', 'status', 'pickup_time'
-            'delivery_fee', 'min_order_amount'
+            'location', 'category', 'status', 'pickup_time',
+            'delivery_fee', 'min_order_amount',
+            'host_nickname'
 
         )
         read_only_fields = ['host']
