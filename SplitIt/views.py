@@ -7,6 +7,7 @@ from .models import Post
 from .serializers import PostSerializer, CommentSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
+from django.db.models import Q
 
 class PostListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -17,12 +18,18 @@ class PostListView(APIView):
 
         search_location = request.GET.get('location')
         search_category = request.GET.get('category')
+        search_keyword = request.GET.get('keyword')
 
         if search_location:
             posts = posts.filter(location=search_location)
             
         if search_category:
             posts = posts.filter(category=search_category)
+            
+        if search_keyword:
+            posts = posts.filter(
+                Q(title__icontains=search_keyword) | Q(body__icontains=search_keyword)
+            )
 
 
         serializer = PostSerializer(posts, many=True, context={'request': request})
