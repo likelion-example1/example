@@ -83,17 +83,14 @@ class ProfileView(APIView):
         
         return Response({
             
-            "username": user.username,
-            "nickname": profile.nickname,
+            "id": user.username,
+            "username": profile.nickname,
             "profile_image": image_url,
            
         }, status=status.HTTP_200_OK)
         
     def patch(self, request):
         user = request.user
-        profile, created = Profile.objects.get_or_create(user=user)
-        
-        # 1. 내 프로필을 가져오거나, 없으면 새로 만듭니다 (안전 장치)
         profile, created = Profile.objects.get_or_create(user=user)
         
         serializer = ProfileUpdateSerializer(profile, data=request.data, partial=True, context={'request': request})
@@ -112,7 +109,7 @@ class ProfileView(APIView):
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def put(self, request):
         serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             # 새 비밀번호를 암호화해서 저장

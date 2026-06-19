@@ -40,23 +40,21 @@ class UserSerializer(serializers.Serializer):
 
 class UserLoginSerializer(serializers.Serializer):
 
- username = serializers.CharField(max_length=150)
+ id = serializers.CharField(max_length=150)
 
- password = serializers.CharField(max_length=128, write_only=True)
+ pw = serializers.CharField(max_length=128, write_only=True)
  
  
  def validate(self, data):
 
-    username = data.get('username')
+    username = data.get('id')
 
-    password = data.get('password')
+    password = data.get('pw')
 
 
     if User.objects.filter(username=username).exists():
 
         user = User.objects.get(username=username)
-
- 
 
         if not user.check_password(password):
 
@@ -65,22 +63,15 @@ class UserLoginSerializer(serializers.Serializer):
         else:
 
             token = RefreshToken.for_user(user)
-
             refresh = str(token)
-
             access = str(token.access_token)
 
 
             return {
 
-                 
-
-                'username': user.username,
-                
-                'nickname': user.profile.nickname if hasattr(user, 'profile') else "",
-
+                'id': user.username,           
+                'username': user.profile.nickname if hasattr(user, 'profile') else "",
                 'access': access,
-
                 'refresh': refresh
 
                 }

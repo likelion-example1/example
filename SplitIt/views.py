@@ -50,39 +50,28 @@ class PostListView(APIView):
     
     
 class PostDetailView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get_object(self, pk):
-
         try:
-
             return Post.objects.get(pk=pk)
-
         except Post.DoesNotExist:
-
             raise Http404
 
 
     def get(self, request:HttpRequest, pk, format=None):
-
         post = self.get_object(pk)
-
-        serializer = PostSerializer(post)
-
+        serializer = PostSerializer(post, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
     def put(self, request:HttpRequest, pk, format=None):
-
         post = self.get_object(pk)
-
-        serializer = PostSerializer(post, data=request.data)
-
+        serializer = PostSerializer(post, data=request.data, context={'request': request})
+        
         if serializer.is_valid():
-
             serializer.save()
-
             return Response(serializer.data, status=status.HTTP_200_OK)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -97,6 +86,7 @@ class PostDetailView(APIView):
     
     
 class CommentView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request:HttpRequest, format=None):
 
@@ -134,9 +124,9 @@ class MyMatchingHistoryView(APIView):
         # 2. 내가 수락한 게시물
         accepted_matches = Post.objects.filter(participants=request.user)
 
-        requested_serializer = PostSerializer(requested_matches, many=True)
-        accepted_serializer = PostSerializer(accepted_matches, many=True)
-
+        requested_serializer = PostSerializer(requested_matches, many=True, context={'request': request})
+        accepted_serializer = PostSerializer(accepted_matches, many=True, context={'request': request})
+       
         return Response({
             "requested_matches": requested_serializer.data,
             "accepted_matches": accepted_serializer.data
