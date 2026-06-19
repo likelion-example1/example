@@ -8,6 +8,8 @@ from .serializers import PostSerializer, CommentSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
 from django.db.models import Q
+from .models import MatchingRequest, ChatMessage
+from .serializers import ChatRoomListSerializer, ChatMessageSerializer
 
 class PostListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -158,3 +160,85 @@ class JoinPostView(APIView):
         post.participants.add(user)
         
         return Response({"message": "참여가 완료되었습니다!"}, status=status.HTTP_200_OK)
+    
+    
+    # 1. 채팅방 목록 조회 (GET /chats/)
+class ChatRoomListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 내가 호스트이거나, 내가 게스트로 신청한 모든 게시글(채팅방)을 가져옵니다.
+        posts = Post.objects.filter(
+            models.Q(host=request.user) | models.Q(matching_requests__guest=request.user)
+        ).distinct()
+
+        # 지난 매칭 숨기기 필터링 (isPastHidden)
+        is_past_hidden = request.GET.get('isPastHidden', 'false') == 'true'
+        if is_past_hidden:
+            posts = posts.exclude(status='매칭완료') # 본인의 '완료' 상태 텍스트에 맞게 수정하세요!
+
+        serializer = ChatRoomListSerializer(posts, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# 2. 세부 채팅방 메시지 확인 및 전송 (/chats/<post_id>/messages/)
+class ChatMessageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    # 메시지 내역 가져오기 (프론트가 3초마다 이거를 계속 호출(Polling)할 겁니다!)
+    def get(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        messages = post.chat_messages.all()
+        serializer = ChatMessageSerializer(messages, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # 메시지 보내기
+    def post(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        content = request.data.get('content')
+        
+        if not content:
+            return Response({"message": "내용을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+
+        message = ChatMessage.objects.create(
+            post=post,
+            sender=request.user,
+            content=content
+        )
+        serializer = ChatMessageSerializer(message)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+# 3. 호스트가 매칭 신청을 수락하거나 거절하는 API (/chats/<post_id>/respond/)
+class MatchRespondView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        guest_id = request.data.get('guest_id') # 프론트가 수락/거절할 유저 ID를 보내줌
+        action = request.data.get('action')     # 'accept' 또는 'reject'
+
+        if post.host != request.user:
+            return Response({"message": "방장만 수락/거절할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
+
+        req = get_object_or_404(MatchingRequest, post=post, guest_id=guest_id)
+
+        if action == 'accept':
+            req.status = 'ACCEPTED'
+            req.save()
+            post.participants.add(req.guest) # 참여자 명단에 추가
+
+            # 💡 핵심: 시스템 메시지를 자동으로 하나 쏘아 올립니다!
+            ChatMessage.objects.create(
+                post=post,
+                sender=None, # System
+                content=f"{req.guest.profile.nickname} 님이 입장하셨습니다."
+            )
+            return Response({"message": "매칭 신청을 수락했습니다."}, status=status.HTTP_200_OK)
+
+        elif action == 'reject':
+            req.status = 'REJECTED'
+            req.save()
+            return Response({"message": "매칭 신청을 거절했습니다."}, status=status.HTTP_200_OK)
+
+        return Response({"message": "잘못된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)

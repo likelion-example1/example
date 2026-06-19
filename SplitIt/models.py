@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 
+
 # Create your models here.
 LANGUAGE_CHOICES = (
 
@@ -74,3 +75,32 @@ class Comment(models.Model):
     def __str__(self):
 
         return f"{self.author.username}: {self.comment_text[:20]}"
+    
+# 1. 매칭 신청 및 채팅방 참여 모델
+class MatchingRequest(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', '대기 중'),
+        ('ACCEPTED', '수락됨'),
+        ('REJECTED', '거절됨'),
+    )
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='matching_requests')
+    guest = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='my_requests')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('post', 'guest')  # 한 글에 중복 신청 방지
+
+
+# 2. 채팅 메시지 모델 (댓글 달기와 똑같습니다!)
+class ChatMessage(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='chat_messages')
+    
+    # 💡 sender가 비어있으면(null) "OO님이 입장하셨습니다" 같은 시스템 메시지로 처리합니다.
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']  # 옛날 메시지부터 순서대로 정렬 (채팅창 흐름)
