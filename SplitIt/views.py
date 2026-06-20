@@ -149,17 +149,17 @@ class JoinPostView(APIView):
             return Response({"message": "본인이 작성한 글에는 참여할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         # 이미 참여중
-        if post.participants.filter(id=user.id).exists():
+        if post.participants.filter(id=user.id).exists() or MatchingRequest.objects.filter(post=post, guest=user).exists():
             
             return Response({"message": "이미 참여 중인 게시글입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 모집 인원 체크
-        
-
-        # 참여자 명단에 본인 추가
-        post.participants.add(user)
-        
-        return Response({"message": "참여가 완료되었습니다!"}, status=status.HTTP_200_OK)
+        MatchingRequest.objects.create(
+            post=post,
+            guest=user,
+            status='PENDING'
+        )
+             
+        return Response({"message": "매칭 신청이 완료되었습니다. 방장의 수락을 기다려주세요!"}, status=status.HTTP_200_OK)
     
     
     # 1. 채팅방 목록 조회 (GET /chats/)
@@ -169,7 +169,7 @@ class ChatRoomListView(APIView):
     def get(self, request):
         # 내가 호스트이거나, 내가 게스트로 신청한 모든 게시글(채팅방)을 가져옵니다.
         posts = Post.objects.filter(
-            models.Q(host=request.user) | models.Q(matching_requests__guest=request.user)
+            Q(host=request.user) | Q(matching_requests__guest=request.user)
         ).distinct()
 
         # 지난 매칭 숨기기 필터링 (isPastHidden)
