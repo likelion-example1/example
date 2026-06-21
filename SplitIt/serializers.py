@@ -89,13 +89,14 @@ class ChatRoomListSerializer(serializers.ModelSerializer):
     
     
 class MatchingRequestSerializer(serializers.ModelSerializer):
+    request_id = serializers.IntegerField(source='id', read_only=True)
     guest_id = serializers.IntegerField(source='guest.id', read_only=True)
     guest_nickname = serializers.CharField(source='guest.profile.nickname', read_only=True)
     guest_profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = MatchingRequest
-        fields = ('guest_id', 'guest_nickname', 'guest_profile_image', 'status')
+        fields = ('request_id','guest_id', 'guest_nickname', 'guest_profile_image', 'status')
 
     def get_guest_profile_image(self, obj):
         request = self.context.get('request')

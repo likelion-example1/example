@@ -215,7 +215,7 @@ class MatchRespondView(APIView):
 
     def post(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
-        guest_id = request.data.get('guest_id') # 프론트가 수락/거절할 유저 ID를 보내줌
+        guest_id = request.data.get('request_id') # 프론트가 수락/거절할 유저 ID를 보내줌
         action = request.data.get('action')     # 'accept' 또는 'reject'
 
         if post.host != request.user:
