@@ -2,7 +2,7 @@ from django.urls import path
 
 from .views import *
 
-from .views import PostListView, MyPostListView,ChatRoomListView, ChatMessageView, MatchRespondView
+from .views import PostListView, MyPostListView,ChatRoomListView, ChatMessageView, MatchRespondView, MatchRequestListView
 
 app_name = 'SplitIt'
 
@@ -18,4 +18,5 @@ urlpatterns = [
     path('chats/', ChatRoomListView.as_view(), name='chat-room-list'),
     path('chats/<int:post_id>/messages/', ChatMessageView.as_view(), name='chat-message'),
     path('chats/<int:post_id>/respond/', MatchRespondView.as_view(), name='match-respond'),
+    path('chats/<int:post_id>/requests/', MatchRequestListView.as_view(), name='match-request-list'),
 ]

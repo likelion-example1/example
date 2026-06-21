@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
 from django.db.models import Q
 from .models import MatchingRequest, ChatMessage
-from .serializers import ChatRoomListSerializer, ChatMessageSerializer
+from .serializers import ChatRoomListSerializer, ChatMessageSerializer, MatchingRequestSerializer
 
 class PostListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -242,3 +242,22 @@ class MatchRespondView(APIView):
             return Response({"message": "매칭 신청을 거절했습니다."}, status=status.HTTP_200_OK)
 
         return Response({"message": "잘못된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+class MatchRequestListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+
+        # 1. 방장(호스트)이 아니면 빈 배열을 주거나 권한 없다고 튕겨냅니다.
+        if post.host != request.user:
+            return Response([], status=status.HTTP_200_OK)
+
+        # 2. 이 방에 신청한 사람 중, 상태가 'PENDING(대기 중)'인 사람만 필터링!
+        pending_requests = MatchingRequest.objects.filter(post=post, status='PENDING')
+        
+       
+        serializer = MatchingRequestSerializer(pending_requests, many=True, context={'request': request})
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)

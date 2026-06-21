@@ -46,7 +46,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         return obj.sender is None  # 보낸 사람이 없으면 시스템 메시지(True)
 
 
-# 2. 프론트엔드가 요구한 채팅방 목록 전용 이름표
+# 2. 채팅방 목록 전용 이름표
 class ChatRoomListSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
     host_nickname = serializers.CharField(source='host.profile.nickname', read_only=True)
@@ -56,7 +56,7 @@ class ChatRoomListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id', 'title', 'location', 'category', 'host_nickname', 'type', 'last_message', 'pending_count', 'status_display')
+        fields = ('id', 'title', 'location', 'category', 'host_nickname', 'type', 'last_message', 'pending_count', 'status_display', 'min_order_amount')
 
     def get_type(self, obj):
         request = self.context.get('request')
@@ -86,3 +86,21 @@ class ChatRoomListSerializer(serializers.ModelSerializer):
             if my_req and my_req.status == 'PENDING':
                 return "매칭 대기중"
         return obj.status  # 원래 게시글의 상태 (매칭중 / 매칭완료 등)
+    
+    
+class MatchingRequestSerializer(serializers.ModelSerializer):
+    guest_id = serializers.IntegerField(source='guest.id', read_only=True)
+    guest_nickname = serializers.CharField(source='guest.profile.nickname', read_only=True)
+    guest_profile_image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MatchingRequest
+        fields = ('guest_id', 'guest_nickname', 'guest_profile_image', 'status')
+
+    def get_guest_profile_image(self, obj):
+        request = self.context.get('request')
+        profile = obj.guest.profile
+       
+        if profile.profile_image:
+            return request.build_absolute_uri(profile.profile_image.url)
+        return ""
