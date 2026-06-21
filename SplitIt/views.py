@@ -221,7 +221,7 @@ class MatchRespondView(APIView):
         if post.host != request.user:
             return Response({"message": "방장만 수락/거절할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
 
-        req = get_object_or_404(MatchingRequest, post=post, guest_id=guest_id)
+        req = get_object_or_404(MatchingRequest, id=request_id, post=post)
 
         if action == 'accept':
             req.status = 'ACCEPTED'
